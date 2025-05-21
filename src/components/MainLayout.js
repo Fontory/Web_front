@@ -6,6 +6,9 @@ import LevelInfo from '../pages/LevelInfo';
 import DataManagement from '../pages/DataManagement';
 import NotebookManagement from '../pages/NotebookManagement';
 import NotebookBackgroundManagement from '../pages/NotebookBackgroundManagement';
+import AiModelManagement from '../pages/AiModelManagement';
+import FontAccuracyManagement from '../pages/FontAccuracyManagement';
+import AdminService from '../pages/AdminService';
 
 const MainLayout = () => {
   const location = useLocation();
@@ -31,6 +34,9 @@ const MainLayout = () => {
           <Route path="/data" element={<DataManagement />} />
           <Route path="/notebook" element={<NotebookManagement />} />
           <Route path="/background" element={<NotebookBackgroundManagement />} />
+          <Route path="/ai" element={<AiModelManagement />} />
+          <Route path="/font-accuracy" element={<FontAccuracyManagement />} />
+          <Route path="/admin" element={<AdminService />} />
         </Routes>
       </div>
     </div>

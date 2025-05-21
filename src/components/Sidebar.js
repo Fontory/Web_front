@@ -6,9 +6,9 @@ const Sidebar = ({ activeMenu, setActiveMenu }) => {
 
   const menuItems = [
     { label: '회원 관리', route: '/members' },
-    { label: 'AI 성능 관리' }, 
+    { label: 'AI 성능 관리', route: '/ai' },
     { label: '데이터 관리', route: '/data' },
-    { label: '관리자 서비스' },
+    { label: '관리자 서비스', route: '/admin' },
   ];
 
   const handleClick = (item) => {
