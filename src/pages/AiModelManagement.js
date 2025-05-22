@@ -1,7 +1,7 @@
 // src/pages/AiModelManagement.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api/axiosInstance';
 
 const AiModelManagement = () => {
   const navigate = useNavigate();
@@ -12,9 +12,9 @@ const AiModelManagement = () => {
   const [newDesc, setNewDesc] = useState('');
 
   useEffect(() => {
-    axios.get('http://ceprj.gachon.ac.kr:60023/admin/ai-versions')
+    axios.get('/admin/ai-versions')  // baseURL은 axiosInstance에 있음
       .then((res) => {
-        const sorted = res.data.sort((a, b) => a.id - b.id); // 🔽 오래된 → 최신 순
+        const sorted = res.data.sort((a, b) => a.id - b.id);
         setModels(sorted);
       })
       .catch((err) => {

@@ -1,20 +1,55 @@
-import React from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    navigate('/members');
+
+    axios.post('http://ceprj.gachon.ac.kr:60023/admin/login', {
+      userId,
+      password
+    })
+    .then(res => {
+      console.log('✅ 로그인 성공:', res.data);
+
+      // 👉 JWT 토큰 저장 (예: localStorage)
+      const token = res.data.token || res.data.accessToken;
+      if (token) {
+        localStorage.setItem('adminToken', token);
+        navigate('/members'); // 로그인 후 페이지 이동
+      } else {
+        alert('토큰이 응답에 없습니다.');
+      }
+    })
+    .catch(err => {
+      console.error('❌ 로그인 실패:', err);
+      alert('로그인 실패. 아이디와 비밀번호를 확인해주세요.');
+    });
   };
 
   return (
     <div style={styles.container}>
       <form style={styles.form} onSubmit={handleLogin}>
         <h2 style={styles.title}>관리자 로그인</h2>
-        <input type="text" placeholder="ID" style={styles.input} />
-        <input type="password" placeholder="Password" style={styles.input} />
+        <input
+          type="text"
+          placeholder="ID"
+          style={styles.input}
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          style={styles.input}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
         <button type="submit" style={styles.button}>Log In</button>
       </form>
     </div>

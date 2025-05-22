@@ -1,9 +1,15 @@
 // src/pages/AdminService.js
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom'; // ✅ navigate 추가
 
 const AdminService = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // ✅
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken'); // ✅ 토큰 삭제
+    navigate('/login'); // ✅ 로그인 페이지로 이동
+  };
 
   return (
     <div style={styles.wrapper}>
@@ -18,7 +24,9 @@ const AdminService = () => {
 
       {/* 중앙 버튼 */}
       <div style={styles.content}>
-        <button style={styles.logoutButton}>Log Out</button>
+        <button style={styles.logoutButton} onClick={handleLogout}>
+          Log Out
+        </button>
       </div>
     </div>
   );
