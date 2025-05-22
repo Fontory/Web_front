@@ -1,24 +1,57 @@
 // src/pages/AiModelManagement.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 
 const AiModelManagement = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [models, setModels] = useState([
-    { version: '0.5v', description: '학습 데이터 추가' },
-    { version: '0.7v', description: '학습 데이터 추가' },
-  ]);
+  const [models, setModels] = useState([]);
   const [newVersion, setNewVersion] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
+  useEffect(() => {
+    axios.get('http://ceprj.gachon.ac.kr:60023/admin/ai-versions')
+      .then((res) => {
+        const sorted = res.data.sort((a, b) => a.id - b.id); // 🔽 오래된 → 최신 순
+        setModels(sorted);
+      })
+      .catch((err) => {
+        console.error('❌ 버전 목록 불러오기 실패:', err);
+      });
+  }, []);
+
+
   const handleAdd = () => {
     if (!newVersion || !newDesc) return;
-    setModels([...models, { version: newVersion, description: newDesc }]);
-    setNewVersion('');
-    setNewDesc('');
+
+    const newModel = {
+      versionName: newVersion,
+      description: newDesc,
+      isCurrentVersion: true
+    };
+
+    axios.post('http://ceprj.gachon.ac.kr:60023/admin/ai-versions', newModel)
+      .then(() => {
+        return axios.get('http://ceprj.gachon.ac.kr:60023/admin/ai-versions');
+      })
+      .then((res) => {
+        // ✅ id 오름차순 (최근 등록 항목이 아래로)
+        const sorted = res.data.sort((a, b) => a.id - b.id);
+        setModels(sorted);
+        setNewVersion('');
+        setNewDesc('');
+      })
+      .catch((err) => {
+        console.error('❌ 등록 실패:', err);
+        alert('등록에 실패했습니다.');
+      });
   };
+
+
+
+
 
   return (
     <div style={styles.wrapper}>
@@ -47,7 +80,7 @@ const AiModelManagement = () => {
         <tbody>
           {models.map((m, i) => (
             <tr key={i}>
-              <td style={styles.td}>{m.version}</td>
+              <td style={styles.td}>{m.versionName}</td>
               <td style={styles.td}>{m.description}</td>
             </tr>
           ))}
