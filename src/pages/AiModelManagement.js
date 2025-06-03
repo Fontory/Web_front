@@ -156,8 +156,10 @@ const styles = {
     textAlign: 'center',
     padding: '12px 16px',
     verticalAlign: 'middle',
-    wordBreak: 'break-word',
+    wordBreak: 'break-word',   // 단어 기준 줄바꿈
+    whiteSpace: 'normal',      // 줄바꿈 문자 없어도 자동 줄바꿈
   },
+
   input: {
     padding: '8px',
     borderRadius: '6px',
