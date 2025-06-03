@@ -1,33 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import EditDataModal from './EditData';
 import NotebookManagement from './NotebookManagement';
 import BackgroundManagement from './NotebookBackgroundManagement';
 import QuoteManagement from './QuoteManagement';
 import BoardManagement from './BoardManagement';
 
-const dummyFonts = [
-  {
-    id: 1,
-    fontName: '성실체',
-    userId: 'abc123',
-    fontUrl: '../srcs/fonts/Neon.ttf',
-    image: '/images/neon.png',
-    createdAt: '2025/03/30',
-  },
-  {
-    id: 2,
-    fontName: '강부장체',
-    userId: 'gang123',
-    fontUrl: '../srcs/fonts/gang.ttf',
-    image: '/images/gang.png',
-    createdAt: '2025/03/30',
-  },
-];
-
 const DataManagement = () => {
   const [activeTab, setActiveTab] = useState('font');
-  const [fonts, setFonts] = useState(dummyFonts);
+  const [fonts, setFonts] = useState([]);
   const [editingFont, setEditingFont] = useState(null);
+
+  useEffect(() => {
+    const fetchFonts = async () => {
+      try {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          alert('관리자 인증 토큰이 없습니다.');
+          return;
+        }
+
+        const response = await axios.get(
+          'http://ceprj.gachon.ac.kr:60023/admin/fonts',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log('📦 폰트 데이터:', response.data);
+        setFonts(response.data);
+      } catch (error) {
+        console.error('❌ 폰트 불러오기 실패:', error);
+        alert('폰트 데이터를 불러오는 데 실패했습니다.');
+      }
+    };
+
+    fetchFonts();
+  }, []);
 
   const handleEdit = (font) => {
     setEditingFont(font);
@@ -74,7 +85,7 @@ const DataManagement = () => {
                 <td style={styles.td}>
                   <img src={font.image} alt="원본" style={{ width: '100px' }} />
                 </td>
-                <td style={styles.td}>{font.createdAt}</td>
+                <td style={styles.td}>{new Date(font.createdAt).toLocaleDateString()}</td>
                 <td style={{ ...styles.td, ...styles.buttonCell }}>
                   <button style={styles.editBtn} onClick={() => handleEdit(font)}>수정</button>
                   <button style={styles.deleteBtn} onClick={() => handleDelete(font.id)}>삭제</button>
@@ -93,19 +104,17 @@ const DataManagement = () => {
     <div style={styles.wrapper}>
       <div style={styles.tabs}>
         {['font', 'note', 'background', 'quote', 'board'].map((tabKey, i) => {
-            const tabNames = ['폰트 관리', '연습장 관리', '연습장 배경 관리', '필사 문구 관리', '게시판 관리'];
-            return (
-                <button
-                key={tabKey}
-                style={activeTab === tabKey ? styles.tabActive : styles.tab}
-                onClick={() => setActiveTab(tabKey)}
-                >
-                {tabNames[i]}
-                </button>
-            );
-            })}
-
-
+          const tabNames = ['폰트 관리', '연습장 관리', '연습장 배경 관리', '필사 문구 관리', '게시판 관리'];
+          return (
+            <button
+              key={tabKey}
+              style={activeTab === tabKey ? styles.tabActive : styles.tab}
+              onClick={() => setActiveTab(tabKey)}
+            >
+              {tabNames[i]}
+            </button>
+          );
+        })}
       </div>
 
       {renderContent()}
