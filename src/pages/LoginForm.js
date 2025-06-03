@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api/axiosInstance'; // ✅ 인스턴스 import 경로 확인
 import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
@@ -10,26 +10,22 @@ const LoginForm = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    axios.post('http://ceprj.gachon.ac.kr:60023/admin/login', {
-      userId,
-      password
-    })
-    .then(res => {
-      console.log('✅ 로그인 성공:', res.data);
+    axios.post('/admin/login', { userId, password }) // ✅ baseURL 생략 가능
+      .then(res => {
+        console.log('✅ 로그인 성공:', res.data);
 
-      // 👉 JWT 토큰 저장 (예: localStorage)
-      const token = res.data.token || res.data.accessToken;
-      if (token) {
-        localStorage.setItem('adminToken', token);
-        navigate('/members'); // 로그인 후 페이지 이동
-      } else {
-        alert('토큰이 응답에 없습니다.');
-      }
-    })
-    .catch(err => {
-      console.error('❌ 로그인 실패:', err);
-      alert('로그인 실패. 아이디와 비밀번호를 확인해주세요.');
-    });
+        const token = res.data.token || res.data.accessToken;
+        if (token) {
+          localStorage.setItem('adminToken', token);
+          navigate('/members');
+        } else {
+          alert('토큰이 응답에 없습니다.');
+        }
+      })
+      .catch(err => {
+        console.error('❌ 로그인 실패:', err);
+        alert('로그인 실패. 아이디와 비밀번호를 확인해주세요.');
+      });
   };
 
   return (

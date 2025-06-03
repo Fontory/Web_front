@@ -1,35 +1,74 @@
 // src/pages/QuoteManagement.js
-import React, { useState } from 'react';
-
-const dummyQuotes = [
-  { id: 1, text: '존재하는 것을 변화시키는 것은 성숙하게 만드는 것이다.' },
-  { id: 2, text: '오랫동안 꿈을 그리는 사람은 마침내 그 꿈을 닮아간다.' },
-];
+import React, { useState, useEffect } from 'react';
+import axios from '../api/axiosInstance'; // 공통 인스턴스 사용
 
 const QuoteManagement = () => {
-  const [quotes, setQuotes] = useState(dummyQuotes);
+  const [quotes, setQuotes] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [newQuote, setNewQuote] = useState('');
+
+  const fetchQuotes = async () => {
+    try {
+      const res = await axios.get('/admin/quotes', {
+        params: {
+          keyword: searchTerm,
+          page: 0,
+          size: 100,
+        },
+      });
+      setQuotes(res.data.content);
+    } catch (err) {
+      console.error('❌ 인용구 목록 불러오기 실패:', err);
+    }
+  };
 
   const handleSearch = () => {
-    alert(`'${searchTerm}' 검색`);
+    fetchQuotes();
   };
 
-  const handleEdit = (id) => {
-    alert(`${id}번 문구 수정하기`);
+  const handleAdd = async () => {
+    if (!newQuote.trim()) return alert('문구를 입력해주세요!');
+    try {
+      await axios.post('/admin/quotes', { content: newQuote });
+      setNewQuote('');
+      fetchQuotes();
+    } catch (err) {
+      console.error('❌ 인용구 추가 실패:', err);
+    }
   };
 
-  const handleAdd = () => {
-    alert('문구 추가하기');
+  const handleEdit = async (id, currentText) => {
+    const updated = prompt('수정할 문구를 입력하세요:', currentText);
+    if (!updated) return;
+    try {
+      await axios.put(`/admin/quotes/${id}`, { content: updated });
+      fetchQuotes();
+    } catch (err) {
+      console.error('❌ 인용구 수정 실패:', err);
+    }
   };
+
+  useEffect(() => {
+    fetchQuotes();
+  }, []);
 
   return (
     <div style={styles.wrapper}>
       <div style={styles.controls}>
-        <button style={styles.addButton} onClick={handleAdd}>추가하기</button>
+        <div style={styles.addGroup}>
+          <input
+            type="text"
+            placeholder="새 인용구 입력"
+            value={newQuote}
+            onChange={(e) => setNewQuote(e.target.value)}
+            style={styles.input}
+          />
+          <button style={styles.addButton} onClick={handleAdd}>추가하기</button>
+        </div>
         <div style={styles.searchGroup}>
           <input
             type="text"
-            placeholder="문구 입력"
+            placeholder="문구 검색"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={styles.input}
@@ -43,36 +82,42 @@ const QuoteManagement = () => {
           <tr>
             <th style={styles.th}>번호</th>
             <th style={styles.th}>문구</th>
-            <th style={styles.th}>상세보기</th>
+            <th style={styles.th}>관리</th>
           </tr>
         </thead>
         <tbody>
           {quotes.map((q, index) => (
-            <tr key={q.id}>
+            <tr key={q.quoteId}>
               <td style={styles.td}>{index + 1}</td>
-              <td style={styles.td}>{q.text}</td>
+              <td style={styles.td}>{q.content}</td>
               <td style={styles.td}>
-                <button style={styles.editBtn} onClick={() => handleEdit(q.id)}>수정</button>
+                <button style={styles.editBtn} onClick={() => handleEdit(q.quoteId, q.content)}>
+                  수정
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <div style={{ textAlign: 'center', marginTop: '16px' }}>1</div>
+      <div style={{ textAlign: 'center', marginTop: '16px' }}>총 {quotes.length}개</div>
     </div>
   );
 };
 
 const styles = {
-  wrapper: {
-    padding: '30px',
-    backgroundColor: '#fafafa',
-  },
+  wrapper: { padding: '30px', backgroundColor: '#fafafa' },
   controls: {
     display: 'flex',
     justifyContent: 'space-between',
     marginBottom: '20px',
+    gap: '20px',
+    flexWrap: 'wrap',
+  },
+  addGroup: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
   },
   addButton: {
     background: '#111',
