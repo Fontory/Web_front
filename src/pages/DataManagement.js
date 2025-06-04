@@ -1,88 +1,66 @@
-import React, { useState } from 'react';
-import EditDataModal from './EditData';
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '../api/axiosInstance';
 import NotebookManagement from './NotebookManagement';
 import BackgroundManagement from './NotebookBackgroundManagement';
 import QuoteManagement from './QuoteManagement';
 import BoardManagement from './BoardManagement';
 
-const dummyFonts = [
-  {
-    fontId: 3,
-    userId: 'heir001',
-    name: '빛의 계승자',
-    ttf_url: 'HeirofLightRegular.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-02T22:08:09',
-  },
-  {
-    fontId: 4,
-    userId: 'goheung001',
-    name: '행복고흥',
-    ttf_url: '행복고흥M.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-02T22:08:09',
-  },
-  {
-    fontId: 11,
-    userId: 'mother1234',
-    name: '딸에게 엄마가',
-    ttf_url: '딸에게 엄마가.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-22T22:46:59',
-  },
-  {
-    fontId: 12,
-    userId: 'sea1234',
-    name: '세아체',
-    ttf_url: '세아체.ttf',
-    original_image_url: '/handwriting/sus32578/1748542437890/original.png',
-    created_at: '2025-05-22T22:46:59',
-  },
-  {
-    fontId: 13,
-    userId: 'mugung1234',
-    name: '무궁화',
-    ttf_url: '무궁화.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-22T22:46:59',
-  },
-  {
-    fontId: 14,
-    userId: 'sus32578',
-    name: '다행체',
-    ttf_url: '다행체.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-23T22:15:58',
-  },
-  {
-    fontId: 15,
-    userId: 'sus32578',
-    name: '아빠글씨',
-    ttf_url: '아빠글씨.ttf',
-    original_image_url: '/handwritingSample.png',
-    created_at: '2025-05-23T22:39:55',
-  },
-];
+const SERVER_URL = 'http://ceprj.gachon.ac.kr:60023';
 
 const DataManagement = () => {
   const [activeTab, setActiveTab] = useState('font');
-  const [fonts, setFonts] = useState(dummyFonts);
+  const [fonts, setFonts] = useState([]);
   const [editingFont, setEditingFont] = useState(null);
   const [ttfFile, setTtfFile] = useState(null);
+  const [searchKeyword, setSearchKeyword] = useState('');
 
-  const handleEdit = (font) => {
-    setEditingFont(font);
+  const fetchFonts = async () => {
+    try {
+      const res = await axiosInstance.get('/admin/fonts', {
+        params: {
+          keyword: searchKeyword,
+          page: 0,
+          size: 10,
+        },
+      });
+      console.log('📦 서버에서 받은 폰트 목록:', res.data.content);
+      setFonts(res.data.content);
+    } catch (err) {
+      console.error('❌ 폰트 목록 불러오기 실패:', err);
+    }
   };
 
-  const handleDelete = (id) => {
-    setFonts(fonts.filter((f) => f.fontId !== id));
+  useEffect(() => {
+    if (activeTab === 'font') {
+      fetchFonts();
+    }
+  }, [activeTab]);
+
+  const handleEdit = (font) => setEditingFont(font);
+
+  const handleDelete = async (id) => {
+    if (window.confirm('정말 삭제하시겠습니까?')) {
+      try {
+        await axiosInstance.delete(`/admin/fonts/${id}`);
+        setFonts((prev) => prev.filter((f) => f.fontId !== id));
+      } catch (err) {
+        console.error('❌ 폰트 삭제 실패:', err);
+      }
+    }
   };
 
-  const handleSave = (updatedFont) => {
-    setFonts((prev) =>
-      prev.map((f) => (f.fontId === updatedFont.fontId ? updatedFont : f))
-    );
-    setEditingFont(null);
+  const handleSave = async (updatedFont) => {
+    try {
+      const res = await axiosInstance.put(`/admin/fonts/${updatedFont.fontId}`, updatedFont);
+      console.log('✅ 폰트 수정 완료:', res.data);
+      setFonts((prev) =>
+        prev.map((f) => (f.fontId === updatedFont.fontId ? updatedFont : f))
+      );
+      setEditingFont(null);
+    } catch (err) {
+      console.error('❌ 폰트 수정 실패:', err);
+      alert('수정 중 오류가 발생했습니다.');
+    }
   };
 
   const renderContent = () => {
@@ -94,7 +72,19 @@ const DataManagement = () => {
     if (activeTab === 'font') {
       return (
         <>
-          {/* TTF 파일 업로드 영역 */}
+          {/* 검색창 */}
+          <div style={{ marginBottom: '16px' }}>
+            <input
+              type="text"
+              placeholder="폰트 이름 검색"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              style={{ padding: '8px', width: '200px', marginRight: '8px' }}
+            />
+            <button onClick={fetchFonts} style={styles.editBtn}>검색</button>
+          </div>
+
+          {/* TTF 업로드 UI */}
           <div style={{ marginBottom: '20px' }}>
             <input
               type="file"
@@ -108,7 +98,7 @@ const DataManagement = () => {
             )}
           </div>
 
-          {/* 폰트 목록 테이블 */}
+          {/* 폰트 테이블 */}
           <table style={styles.table}>
             <thead>
               <tr>
@@ -126,33 +116,19 @@ const DataManagement = () => {
                 <tr key={font.fontId}>
                   <td style={styles.td}>{index + 1}</td>
                   <td style={styles.td}>{font.name}</td>
-                  <td style={styles.td}>
-                    <strong>{font.userId}</strong>
-                  </td>
-                  <td style={styles.td}>{font.ttf_url}</td>
+                  <td style={styles.td}><strong>{font.userId}</strong></td>
+                  <td style={styles.td}>{font.ttfUrl}</td>
                   <td style={styles.td}>
                     <img
-                      src={`http://ceprj.gachon.ac.kr:60023${font.original_image_url}`}
+                      src={`${SERVER_URL}${font.originalImageUrl}`}
                       alt="원본"
                       style={{ width: '100px' }}
                     />
                   </td>
-                  <td style={styles.td}>
-                    {new Date(font.created_at).toLocaleDateString()}
-                  </td>
+                  <td style={styles.td}>{new Date(font.createdAt).toLocaleDateString()}</td>
                   <td style={{ ...styles.td, ...styles.buttonCell }}>
-                    <button
-                      style={styles.editBtn}
-                      onClick={() => handleEdit(font)}
-                    >
-                      수정
-                    </button>
-                    <button
-                      style={styles.deleteBtn}
-                      onClick={() => handleDelete(font.fontId)}
-                    >
-                      삭제
-                    </button>
+                    <button style={styles.editBtn} onClick={() => handleEdit(font)}>수정</button>
+                    <button style={styles.deleteBtn} onClick={() => handleDelete(font.fontId)}>삭제</button>
                   </td>
                 </tr>
               ))}
@@ -189,96 +165,86 @@ const DataManagement = () => {
       </div>
 
       {renderContent()}
-      <div style={{ textAlign: 'center', marginTop: '16px' }}>1</div>
 
       {editingFont && (
-        <EditDataModal
-          font={editingFont}
-          onClose={() => setEditingFont(null)}
-          onSave={handleSave}
-        />
+        <div style={modalStyle.overlay}>
+          <div style={modalStyle.modal}>
+            <h3>폰트 수정</h3>
+            <label>폰트 이름</label>
+            <input
+              value={editingFont.name}
+              onChange={(e) => setEditingFont({ ...editingFont, name: e.target.value })}
+              style={modalStyle.input}
+            />
+
+            <label>TTF 파일 경로</label>
+            <input
+              value={editingFont.ttfUrl}
+              onChange={(e) => setEditingFont({ ...editingFont, ttfUrl: e.target.value })}
+              style={modalStyle.input}
+            />
+
+            <label>원본 이미지 경로</label>
+            <input
+              value={editingFont.originalImageUrl}
+              onChange={(e) => setEditingFont({ ...editingFont, originalImageUrl: e.target.value })}
+              style={modalStyle.input}
+            />
+
+            <div style={{ marginTop: '16px', textAlign: 'right' }}>
+              <button onClick={() => handleSave(editingFont)} style={modalStyle.saveBtn}>저장</button>
+              <button onClick={() => setEditingFont(null)} style={modalStyle.cancelBtn}>취소</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
+// 💅 스타일
 const styles = {
-  wrapper: {
-    padding: '30px',
-    backgroundColor: '#fafafa',
-  },
-  tabs: {
-    display: 'flex',
-    gap: '20px',
-    marginBottom: '24px',
-  },
+  wrapper: { padding: '30px', backgroundColor: '#fafafa' },
+  tabs: { display: 'flex', gap: '20px', marginBottom: '24px' },
   tab: {
     background: 'none',
-    border: 'none',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
+    borderBottom: 'none',   // 👈 충돌 안 나도록 명시적
     fontSize: '16px',
     color: '#888',
     cursor: 'pointer',
     paddingBottom: '8px',
-    borderBottom: 'none',
   },
   tabActive: {
     background: 'none',
-    border: 'none',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
+    borderBottom: '2px solid black',  // 👈 강조만 여기서
     fontSize: '16px',
     color: '#000',
     fontWeight: 'bold',
     paddingBottom: '8px',
-    borderBottom: '2px solid black',
     cursor: 'pointer',
   },
-  table: {
-    width: '100%',
-    borderCollapse: 'separate',
-    borderSpacing: '0',
-    background: '#fff',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    tableLayout: 'fixed',
-  },
-  th: {
-    textAlign: 'center',
-    padding: '12px 16px',
-    fontWeight: 'bold',
-  },
-  td: {
-    textAlign: 'center',
-    padding: '12px 16px',
-    verticalAlign: 'middle',
-    wordBreak: 'break-word',
-  },
-  buttonCell: {
-    display: 'flex',
-    gap: '8px',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editBtn: {
-    backgroundColor: '#333',
-    color: 'white',
-    border: 'none',
-    borderRadius: '20px',
-    padding: '6px 12px',
-    cursor: 'pointer',
-  },
-  deleteBtn: {
-    backgroundColor: '#333',
-    color: 'white',
-    border: 'none',
-    borderRadius: '20px',
-    padding: '6px 12px',
-    cursor: 'pointer',
-  },
-  message: {
-    fontSize: '16px',
-    color: '#111',
-    marginTop: '20px',
-    paddingLeft: '10px',
-  },
+
+  table: { width: '100%', borderCollapse: 'separate', borderSpacing: '0', background: '#fff', borderRadius: '12px', overflow: 'hidden', tableLayout: 'fixed' },
+  th: { textAlign: 'center', padding: '12px 16px', fontWeight: 'bold' },
+  td: { textAlign: 'center', padding: '12px 16px', verticalAlign: 'middle', wordBreak: 'break-word' },
+  buttonCell: { display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' },
+  editBtn: { backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '20px', padding: '6px 12px', cursor: 'pointer' },
+  deleteBtn: { backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '20px', padding: '6px 12px', cursor: 'pointer' },
+  message: { fontSize: '16px', color: '#111', marginTop: '20px', paddingLeft: '10px' },
+};
+
+const modalStyle = {
+  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modal: { background: '#fff', borderRadius: '8px', padding: '24px', width: '400px', boxShadow: '0 2px 10px rgba(0,0,0,0.2)' },
+  input: { width: '100%', padding: '8px', marginBottom: '12px', borderRadius: '4px', border: '1px solid #ccc' },
+  saveBtn: { padding: '8px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', marginRight: '8px', cursor: 'pointer' },
+  cancelBtn: { padding: '8px 16px', backgroundColor: '#888', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' },
 };
 
 export default DataManagement;

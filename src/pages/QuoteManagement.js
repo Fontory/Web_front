@@ -22,6 +22,17 @@ const QuoteManagement = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+    try {
+      await axios.delete(`/admin/quotes/${id}`);
+      fetchQuotes();
+    } catch (err) {
+      console.error('❌ 인용구 삭제 실패:', err);
+    }
+  };
+
+
   const handleSearch = () => {
     fetchQuotes();
   };
@@ -91,9 +102,12 @@ const QuoteManagement = () => {
               <td style={styles.td}>{index + 1}</td>
               <td style={styles.td}>{q.content}</td>
               <td style={styles.td}>
-                <button style={styles.editBtn} onClick={() => handleEdit(q.quoteId, q.content)}>
-                  수정
-                </button>
+                  <button style={styles.editBtn} onClick={() => handleEdit(q.quoteId, q.content)}>
+                    수정
+                  </button>
+                  <button style={styles.deleteBtn} onClick={() => handleDelete(q.quoteId)}>
+                    삭제
+                  </button>
               </td>
             </tr>
           ))}
@@ -172,6 +186,16 @@ const styles = {
     padding: '6px 12px',
     cursor: 'pointer',
   },
+  deleteBtn: {
+    backgroundColor: '#333',
+    color: 'white',
+    border: 'none',
+    borderRadius: '20px',
+    padding: '6px 12px',
+    marginLeft: '8px',
+    cursor: 'pointer',
+  },
+
 };
 
 export default QuoteManagement;
