@@ -9,19 +9,19 @@ const NotebookManagement = () => {
     {
       sheetId: 1,
       imageUrl: '/preview/sheet_f651b832-f46d-4397-8f12-30cdc7c97ca0.png',
-      phrase: 'adgfadgsfd',
+      phrase: '예쁘게 쓰고 싶은 마음으로',
       nickname: '유저1',
     },
     {
       sheetId: 2,
       imageUrl: '/preview/sheet_cee26df4-a724-48f4-86ef-2b008f618daa.png',
-      phrase: 'Vddddd',
+      phrase: '반복이 글씨체를 만든다',
       nickname: '유저1',
     },
     {
       sheetId: 3,
       imageUrl: '/preview/sheet_b9e88db1-f4b5-4a9e-9894-f6ae7ea877b2.png',
-      phrase: 'fdadwafdaf',
+      phrase: '오늘은 날씨가 참 맑습니다',
       nickname: '유저1',
     },
     {
@@ -33,13 +33,13 @@ const NotebookManagement = () => {
     {
       sheetId: 5,
       imageUrl: '/preview/sheet_0ee2c2b5-f938-4afd-b5d0-a6ca7eba5962.png',
-      phrase: 'dfasasfasfasfas',
+      phrase: '열심히 쓰면 예쁜 글씨가 된다',
       nickname: '유저1',
     },
     {
       sheetId: 6,
       imageUrl: '/preview/sheet_75679fcc-508b-4070-b7bb-f60e206340ce.png',
-      phrase: 'dfadsfasfasfasf\nGdfasfasfasfasfasfasfasfasfasfasfasf',
+      phrase: '아무 일도 없었지만 그게 행복',
       nickname: '유저1',
     },
     {
